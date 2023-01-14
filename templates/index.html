@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App</title>
+    <!-- Required chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/htmx/1.8.4/htmx.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        clifford: '#da373d',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+
+<section class=" w-[80%] mx-auto  mt-24  relative">
+    <h2 class="text-3xl my-2"> Task Manager </h2>
+    <div class="my-6">
+        <input class=" border shadow w-full md:w-1/2 border leading-tight rounded p-2 text-gray-500 focus:outline-teal-200 focus:shadow-outline"
+               hx-post = "{% url 'search_task' %}"
+               hx-trigger = "keyup changed delay:500ms, search"
+               hx-target = "body"
+{#               hx-indicator=".htmx-indicator"#}
+               type="search" name="search" placeholder="Search for task">
+    </div>
+    <div class="flex flex-col md:flex-row mb-8 w-full md:space-x-8">
+        <div id="my-data" class="w-full md:w-1/2">
+            <table class="table-auto  text-left w-full ">
+                <thead class="text-white bg-black">
+                <tr>
+                    <th>Task</th>
+                    <th>Created Date</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody id="search-results" class="divide-y">
+                {% if tasks %}
+                    {% for task in tasks %}
+                    <tr>
+                        <td>{{ task.title }}</td>
+                        <td>{{ task.created_at | date }}</td>
+                        <td class="bg-teal-600 text-white text-center px-2 py-1"><button hx-get="{% url 'edit_task' task.id %}" hx-target="this" hx-swap="outerHTML" >Edit</button></td>
+                        <td class="bg-red-600 text-white text-center p-1"><button hx-delete="{% url 'delete_task' task.id %}"
+                                                                                  hx-target="body"
+                                                                                  hx-confirm="Are you sure you want to delete?">Delete</button>
+                        </td>
+                    </tr>
+                {% endfor %}
+                    {% else %}
+                    <tr class="text-red-600"><td>No result found</td></tr>
+                {% endif %}
+{#                    <tr>#}
+{#                        <td class="htmx-indicator">#}
+{#                         Searching...#}
+{#                       </td>#}
+{#                    </tr>#}
+                </tbody>
+            </table>
+            {% if tasks.has_other_pages %}
+                <div class="flex mt-4">
+                    {% if tasks.has_previous %}
+                        <a class="bg-teal-500 text-white px-2 py-1" href="?page={{ tasks.previous_page_number }}">&laquo;</a>
+                     {% else %}
+                        <a disabled class="bg-gray-300 disabled:cursor-not-allowed text-white px-2 py-1" >&laquo;</a>
+                    {% endif %}
+
+                    {% for i in tasks.paginator.page_range %}
+                        {% if tasks.number == i %}
+                            <a class="bg-teal-800  text-white px-2 py-1" >{{ i }}</a>
+                        {% else %}
+                            <a class="border text-teal-500  px-2 py-1" href="?page={{ i }}">{{ i }}</a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if tasks.has_next %}
+                        <a class="bg-teal-500  text-black px-2 py-1" href="?page={{ tasks.next_page_number }}">&raquo;</a>
+                        {% else %}
+                        <a class="bg-gray-300 cursor-not-allowed text-black px-2 py-1" >&raquo;</a>
+                    {% endif %}
+
+
+                </div>
+            {% endif %}
+        </div>
+        <div class="w-full md:w-1/2 mt-14 md:mt-0">
+            {% include 'graph.html' %}
+        </div>
+    </div>
+</section>
+
+<script>
+
+document.body.addEventListener('htmx:configRequest', (evt) => {
+    evt.detail.headers['X-CSRFToken'] = '{{ csrf_token }}'; // add a new parameter into the mix
+});
+
+</script>
+
+</body>
+</html>

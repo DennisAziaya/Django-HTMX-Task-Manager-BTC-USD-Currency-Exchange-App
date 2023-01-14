@@ -1,0 +1,47 @@
+<div class="shadow-lg rounded-lg overflow-hidden">
+  <div class="py-3 px-5 bg-gray-50">Bitcoin - US Dollars Exchange Rate</div>
+  <canvas class="p-10" id="chartLine"></canvas>
+</div>
+
+
+
+<!-- Chart line -->
+<script>
+
+    const rates = "{{ all_rates }}"
+    const parsedRates = JSON.parse(rates.replace(/&quot;/g, '"'))
+    //console.log(parsedRates)
+
+    let time_close = parsedRates.map(a => a.time_close);
+    let rate_close = parsedRates.map(a => a.rate_close);
+    {#console.log(result)#}
+    {#console.log(result2)#}
+
+  const labels = time_close;
+  const data = {
+    labels: labels,
+    datasets: [
+      {
+        label: "Exchage Rate",
+        backgroundColor: "hsl(252, 82.9%, 67.8%)",
+        borderColor: "hsl(252, 82.9%, 67.8%)",
+        data: rate_close,
+        //data: []
+
+      },
+    ],
+  };
+
+  const configLineChart = {
+    type: "line",
+    data,
+    options: {},
+  };
+
+  var chartLine = new Chart(
+    document.getElementById("chartLine"),
+    configLineChart
+  );
+
+
+</script>
